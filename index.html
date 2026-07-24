@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forjado — Plan 645 · Chop Wood Carry Water · Dig Deeper</title>
+<meta name="description" content="Seguimiento de entrenamiento y nutrición para el programa 645 → Chop Wood Carry Water → Dig Deeper.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🪓</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<!-- ============================= TOP BAR ============================= -->
+<header class="topbar">
+  <div class="topbar__brand">
+    <span class="brand-mark">🪓</span>
+    <div class="brand-text">
+      <span class="brand-title">FORJADO</span>
+      <span class="brand-subtitle">645 → Chop Wood Carry Water → Dig Deeper</span>
+    </div>
+  </div>
+
+  <div class="topbar__user">
+    <select id="userSelect" class="user-select" aria-label="Perfil activo"></select>
+    <button id="newUserBtn" class="btn btn--ghost btn--sm" title="Crear nuevo perfil">+ Perfil</button>
+  </div>
+</header>
+
+<!-- ============================= NAV TABS ============================= -->
+<nav class="tabs" id="tabs">
+  <button class="tab active" data-tab="inicio">Inicio</button>
+  <button class="tab" data-tab="calendario">Calendario</button>
+  <button class="tab" data-tab="progreso">Progreso</button>
+  <button class="tab" data-tab="medidas">Medidas</button>
+  <button class="tab" data-tab="nutricion">Nutrición</button>
+  <button class="tab" data-tab="comparar">Comparar</button>
+  <button class="tab" data-tab="ajustes">Ajustes</button>
+</nav>
+
+<main class="app-main">
+
+  <!-- ============================= INICIO ============================= -->
+  <section class="panel active" id="panel-inicio">
+    <div id="noUserState" class="empty-state" hidden>
+      <h2>Crea tu primer perfil para empezar</h2>
+      <p>Cada persona que entrene contigo (tú, un amigo, o varios) puede tener su propio perfil, su propia fecha de inicio y su propio seguimiento — todo en este mismo navegador.</p>
+      <button class="btn btn--primary" id="emptyStateNewUser">Crear mi perfil</button>
+    </div>
+
+    <div id="dashboardContent" hidden>
+      <div class="grid grid--dashboard">
+
+        <div class="card card--ring">
+          <h3 class="card__title">Progreso del año</h3>
+          <div class="ring-wrap">
+            <svg id="ringSvg" viewBox="0 0 220 220" class="ring-svg"></svg>
+            <div class="ring-center">
+              <span id="ringDayLabel" class="ring-day">—</span>
+              <span class="ring-sub">día del programa</span>
+            </div>
+          </div>
+          <div id="ringLegend" class="ring-legend"></div>
+        </div>
+
+        <div class="card">
+          <h3 class="card__title">Estado actual</h3>
+          <div class="stat-list" id="statusList">
+            <div class="stat-row"><span>Fase actual</span><strong id="statPhase">—</strong></div>
+            <div class="stat-row"><span>Semana del programa</span><strong id="statWeek">—</strong></div>
+            <div class="stat-row"><span>Días completados</span><strong id="statCompleted">—</strong></div>
+            <div class="stat-row"><span>% de adherencia</span><strong id="statAdherence">—</strong></div>
+            <div class="stat-row"><span>Racha actual</span><strong id="statStreak">—</strong></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 class="card__title">Fecha de inicio</h3>
+          <p class="card__hint">Si aún no has empezado, elige la fecha en la que arrancarás la Fase 0. El calendario completo de 52 semanas se genera automáticamente a partir de este día.</p>
+          <div class="field-row">
+            <input type="date" id="startDateInput" class="input">
+            <button class="btn btn--primary" id="saveStartDateBtn">Guardar</button>
+          </div>
+          <p class="fine-print" id="startDateNote"></p>
+        </div>
+
+        <div class="card card--wide">
+          <h3 class="card__title">Entrenamiento de hoy</h3>
+          <div id="todayWorkout" class="today-workout"></div>
+        </div>
+
+        <div class="card card--wide">
+          <h3 class="card__title">Próximos 7 días</h3>
+          <div id="upcomingStrip" class="upcoming-strip"></div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================= CALENDARIO ============================= -->
+  <section class="panel" id="panel-calendario">
+    <div class="panel-header">
+      <h2>Calendario completo — 52 semanas</h2>
+      <p>Haz clic en cualquier día para ver el detalle del entrenamiento y marcarlo como completado.</p>
+    </div>
+    <div class="phase-filter" id="phaseFilter"></div>
+    <div class="calendar-container" id="calendarContainer"></div>
+  </section>
+
+  <!-- ============================= PROGRESO ============================= -->
+  <section class="panel" id="panel-progreso">
+    <div class="panel-header">
+      <h2>Progreso</h2>
+      <p>Tu evolución de peso, medidas y consistencia de entrenamiento a lo largo del tiempo.</p>
+    </div>
+    <div class="grid grid--2col">
+      <div class="card">
+        <h3 class="card__title">Peso corporal (kg)</h3>
+        <canvas id="weightChart" height="220"></canvas>
+      </div>
+      <div class="card">
+        <h3 class="card__title">Adherencia por fase (%)</h3>
+        <canvas id="phaseChart" height="220"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <h3 class="card__title">Consistencia semanal</h3>
+      <p class="card__hint">Cada casilla es un día. Verde = completado, gris = pendiente, hueco = aún no llega.</p>
+      <div id="heatmap" class="heatmap"></div>
+    </div>
+  </section>
+
+  <!-- ============================= MEDIDAS ============================= -->
+  <section class="panel" id="panel-medidas">
+    <div class="panel-header">
+      <h2>Medidas corporales</h2>
+      <p>Registra tu peso y medidas cada 2-4 semanas para comparar antes / durante / después.</p>
+    </div>
+
+    <div class="card">
+      <h3 class="card__title">Nuevo registro</h3>
+      <form id="measurementForm" class="measurement-form">
+        <label>Fecha<input type="date" id="mDate" class="input" required></label>
+        <label>Peso (kg)<input type="number" step="0.1" id="mWeight" class="input" placeholder="71.0"></label>
+        <label>Cintura (cm)<input type="number" step="0.1" id="mWaist" class="input" placeholder="82"></label>
+        <label>Pecho (cm)<input type="number" step="0.1" id="mChest" class="input" placeholder="98"></label>
+        <label>Brazo (cm)<input type="number" step="0.1" id="mArm" class="input" placeholder="34"></label>
+        <label>Muslo (cm)<input type="number" step="0.1" id="mThigh" class="input" placeholder="55"></label>
+        <label>% Grasa (opcional)<input type="number" step="0.1" id="mBodyfat" class="input" placeholder="18"></label>
+        <label class="measurement-form__notes">Notas<input type="text" id="mNotes" class="input" placeholder="Cómo te sientes, fotos tomadas, etc."></label>
+        <button type="submit" class="btn btn--primary">Guardar registro</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h3 class="card__title">Comparación antes / durante / después</h3>
+      <div id="beforeDuringAfter" class="bda-grid"></div>
+    </div>
+
+    <div class="card">
+      <h3 class="card__title">Historial completo</h3>
+      <div class="table-wrap">
+        <table class="data-table" id="measurementsTable">
+          <thead><tr><th>Fecha</th><th>Peso</th><th>Cintura</th><th>Pecho</th><th>Brazo</th><th>Muslo</th><th>% Grasa</th><th>Notas</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================= NUTRICION ============================= -->
+  <section class="panel" id="panel-nutricion">
+    <div class="panel-header">
+      <h2>Nutrición</h2>
+      <p>Calculadoras y referencias basadas en tu plan: proteína, gasto calórico y macros.</p>
+    </div>
+
+    <div class="grid grid--2col">
+      <div class="card">
+        <h3 class="card__title">Calculadora de proteína</h3>
+        <div class="field-row">
+          <label class="field-label">Peso corporal (kg)<input type="number" step="0.1" id="pWeight" class="input"></label>
+          <label class="field-label">Nivel objetivo
+            <select id="pLevel" class="input">
+              <option value="1.6">Mínimo — 1.6 g/kg</option>
+              <option value="1.9" selected>Recomendado — 1.9 g/kg</option>
+              <option value="2.2">Máximo — 2.2 g/kg</option>
+            </select>
+          </label>
+        </div>
+        <div class="result-box" id="proteinResult"></div>
+      </div>
+
+      <div class="card">
+        <h3 class="card__title">TMB, gasto calórico y objetivo</h3>
+        <div class="field-row field-row--wrap">
+          <label class="field-label">Sexo
+            <select id="tSex" class="input">
+              <option value="male">Hombre</option>
+              <option value="female">Mujer</option>
+            </select>
+          </label>
+          <label class="field-label">Edad<input type="number" id="tAge" class="input"></label>
+          <label class="field-label">Altura (cm)<input type="number" id="tHeight" class="input"></label>
+          <label class="field-label">Peso (kg)<input type="number" step="0.1" id="tWeight" class="input"></label>
+        </div>
+        <div class="field-row field-row--wrap">
+          <label class="field-label field-label--grow">Nivel de actividad
+            <select id="tActivity" class="input"></select>
+          </label>
+          <label class="field-label field-label--grow">Objetivo
+            <select id="tGoal" class="input"></select>
+          </label>
+        </div>
+        <div class="result-box" id="tdeeResult"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 class="card__title">Tabla de alimentos — porciones a ojo</h3>
+      <div class="table-wrap">
+        <table class="data-table" id="foodVisualTable">
+          <thead><tr><th>Alimento</th><th>Porción visual</th><th>Proteína</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 class="card__title">Tabla de alimentos — con gramera (por 100 g)</h3>
+      <div class="table-wrap">
+        <table class="data-table" id="foodGramsTable">
+          <thead><tr><th>Alimento (cocido)</th><th>Proteína / 100 g</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 class="card__title">Banco de comidas (referencia rápida)</h3>
+      <div class="meal-bank" id="mealBank"></div>
+    </div>
+
+    <div class="card">
+      <h3 class="card__title">Semanas de descarga — qué entrenar</h3>
+      <div class="deload-tips" id="deloadTips"></div>
+    </div>
+  </section>
+
+  <!-- ============================= COMPARAR ============================= -->
+  <section class="panel" id="panel-comparar">
+    <div class="panel-header">
+      <h2>Comparar usuarios</h2>
+      <p>Selecciona a las personas que quieres comparar (por ejemplo, tú y tus compañeros de entrenamiento).</p>
+    </div>
+    <div class="card">
+      <div id="compareSelector" class="compare-selector"></div>
+    </div>
+    <div class="grid grid--2col">
+      <div class="card">
+        <h3 class="card__title">Peso corporal — comparación</h3>
+        <canvas id="compareWeightChart" height="240"></canvas>
+      </div>
+      <div class="card">
+        <h3 class="card__title">Adherencia general (%)</h3>
+        <canvas id="compareAdherenceChart" height="240"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <h3 class="card__title">Tabla comparativa</h3>
+      <div class="table-wrap">
+        <table class="data-table" id="compareTable">
+          <thead><tr><th>Usuario</th><th>Inicio</th><th>Día actual</th><th>Fase</th><th>Completados</th><th>Adherencia</th><th>Peso inicial</th><th>Peso actual</th><th>Δ Peso</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================= AJUSTES ============================= -->
+  <section class="panel" id="panel-ajustes">
+    <div class="panel-header">
+      <h2>Ajustes</h2>
+      <p>Gestiona tu perfil y tus datos. Todo se guarda localmente en este navegador.</p>
+    </div>
+
+    <div class="card">
+      <h3 class="card__title">Perfil</h3>
+      <div class="field-row field-row--wrap">
+        <label class="field-label">Nombre<input type="text" id="settName" class="input"></label>
+        <label class="field-label">Sexo
+          <select id="settSex" class="input">
+            <option value="male">Hombre</option>
+            <option value="female">Mujer</option>
+          </select>
+        </label>
+        <label class="field-label">Edad<input type="number" id="settAge" class="input"></label>
+        <label class="field-label">Altura (cm)<input type="number" id="settHeight" class="input"></label>
+        <label class="field-label">Peso (kg)<input type="number" step="0.1" id="settWeight" class="input"></label>
+      </div>
+      <button class="btn btn--primary" id="saveProfileBtn">Guardar perfil</button>
+    </div>
+
+    <div class="card">
+      <h3 class="card__title">Exportar / importar datos</h3>
+      <p class="card__hint">Como esta web no tiene servidor propio, tus datos viven en este navegador. Exporta un archivo JSON para respaldar o para pasar tu progreso a otro dispositivo.</p>
+      <div class="btn-row">
+        <button class="btn btn--secondary" id="exportBtn">Exportar todos los perfiles (.json)</button>
+        <label class="btn btn--secondary btn--file">
+          Importar archivo
+          <input type="file" id="importFile" accept="application/json" hidden>
+        </label>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 class="card__title danger-title">Zona de riesgo</h3>
+      <p class="card__hint">Elimina el perfil activo y todos sus datos de este navegador. Esta acción no se puede deshacer.</p>
+      <button class="btn btn--danger" id="deleteUserBtn">Eliminar perfil activo</button>
+    </div>
+  </section>
+
+</main>
+
+<div id="toast" class="toast" hidden></div>
+
+<!-- Modal de detalle de día -->
+<div id="dayModal" class="modal" hidden>
+  <div class="modal__backdrop" id="modalBackdrop"></div>
+  <div class="modal__box">
+    <button class="modal__close" id="modalClose" aria-label="Cerrar">✕</button>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+<script src="js/program.js"></script>
+<script src="js/calculators.js"></script>
+<script src="js/nutrition-data.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
