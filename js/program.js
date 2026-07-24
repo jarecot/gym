@@ -48,58 +48,131 @@ const PHASE0_PATTERN = [
   { type: 'descanso',  label: 'Descanso completo',          detail: 'Nada estructurado.', duration: '—' },
 ];
 
-function phase1Pattern6day() {
+// 645 — el calendario oficial usa EXACTAMENTE los mismos nombres de rutina
+// las 13 semanas (incluidas las semanas de descarga y la de rendimiento);
+// lo único que cambia semana a semana es el volumen/intensidad interno de
+// cada rutina, no su nombre. Fuente: 645 Workout Calendar (Beachbody/BODi).
+function phase1Pattern6day(weekLabel) {
+  const tag = weekLabel ? ` (${weekLabel})` : '';
   return [
-    { type: 'fuerza',    label: 'Fuerza Total-Body A', detail: 'Patrón de sentadilla + empuje horizontal + core.', duration: '45 min' },
-    { type: 'fuerza',    label: 'Fuerza Total-Body B', detail: 'Patrón de bisagra de cadera + tracción + core.', duration: '45 min' },
-    { type: 'movilidad', label: 'Movilidad',           detail: 'Cadera, hombro, columna torácica. Prevención de lesiones.', duration: '30 min' },
-    { type: 'fuerza',    label: 'Fuerza Total-Body C', detail: 'Empuje vertical + zancada + core rotacional.', duration: '45 min' },
-    { type: 'fuerza',    label: 'Fuerza Total-Body D', detail: 'Tracción vertical + puente de glúteo + core anti-extensión.', duration: '45 min' },
-    { type: 'cardio',    label: 'Cardio',              detail: 'Intervalos moderados o steady-state, a elección.', duration: '30 min' },
-    { type: 'descanso',  label: 'Descanso completo',   detail: 'Nada estructurado.', duration: '—' },
+    { type: 'fuerza',    label: `Lower Body Strength${tag}`, detail: 'Rutina oficial 645 del lunes: fuerza de tren inferior.', duration: '45 min' },
+    { type: 'fuerza',    label: `Total Body Power${tag}`,    detail: 'Rutina oficial 645 del martes: potencia total-body.', duration: '45 min' },
+    { type: 'movilidad', label: `Mobility & Stability${tag}`, detail: 'Rutina oficial 645 del miércoles: movilidad y estabilidad.', duration: '45 min' },
+    { type: 'fuerza',    label: `Upper Body Strength${tag}`, detail: 'Rutina oficial 645 del jueves: fuerza de tren superior.', duration: '45 min' },
+    { type: 'fuerza',    label: `Total Body Tempo${tag}`,    detail: 'Rutina oficial 645 del viernes: fuerza total-body a tempo controlado.', duration: '45 min' },
+    { type: 'cardio',    label: `Cardio 45${tag}`,           detail: 'Rutina oficial 645 del sábado: cardio de 45 minutos.', duration: '45 min' },
+    { type: 'descanso',  label: 'Rest',                      detail: 'Descanso oficial del programa 645.', duration: '—' },
   ];
 }
 
 function phase1Pattern5day() {
+  // Modificación propia (no oficial) para las primeras 3 semanas: se
+  // mantienen los 5 días de fuerza/movilidad oficiales y se sustituye el
+  // día 6 (Cardio 45) por descanso/caminata libre mientras el cuerpo se
+  // readapta. A partir de la semana 4 de esta fase se usa el calendario
+  // oficial completo de 6 días (ver phase1Pattern6day).
   const p = phase1Pattern6day();
-  // sustituye el día de cardio dedicado por descanso extra (semanas 4-6)
-  p[5] = { type: 'descanso', label: 'Descanso / caminata libre', detail: 'Cardio ligero opcional integrado a tus caminatas diarias.', duration: 'Libre' };
+  p[5] = { type: 'descanso', label: 'Descanso / caminata libre', detail: 'Versión adaptada: cardio ligero opcional integrado a tus caminatas diarias en vez de Cardio 45.', duration: 'Libre' };
   return p;
 }
 
-function phase1PerformanceWeek() {
-  return [
-    { type: 'fuerza',  label: 'Fuerza — Test de rendimiento A', detail: 'Semana de rendimiento máximo: cierre de la Fase 1.', duration: '45 min' },
-    { type: 'fuerza',  label: 'Fuerza — Test de rendimiento B', detail: 'Cargas cercanas a tu mejor marca del bloque.', duration: '45 min' },
-    { type: 'movilidad', label: 'Movilidad', detail: 'Mantén el día de movilidad incluso en semana pico.', duration: '30 min' },
-    { type: 'fuerza',  label: 'Fuerza — Test de rendimiento C', detail: 'Cargas cercanas a tu mejor marca del bloque.', duration: '45 min' },
-    { type: 'fuerza',  label: 'Fuerza — Test de rendimiento D', detail: 'Cargas cercanas a tu mejor marca del bloque.', duration: '45 min' },
-    { type: 'cardio',  label: 'Cardio', detail: 'Cierre de fase con esfuerzo moderado-alto.', duration: '30 min' },
-    { type: 'descanso', label: 'Descanso completo', detail: 'Prepárate para la semana de descarga que sigue.', duration: '—' },
-  ];
-}
-
-const CWCW_PATTERN = [
-  { type: 'primal', label: 'Tempo Strength', detail: 'Fuerza controlada con tempo, patrones de suelo y bisagra.', duration: '30-35 min' },
-  { type: 'primal', label: 'Hot Start',      detail: 'Activación + trabajo primal de movilidad dinámica.', duration: '25-30 min' },
-  { type: 'primal', label: 'EMOM Circuit',   detail: 'Circuito cada minuto en punto: fuerza + agilidad.', duration: '30 min' },
-  { type: 'primal', label: 'Burnout',        detail: 'Cierre metabólico de alta densidad.', duration: '25-30 min' },
-  { type: 'primal', label: 'Tempo Strength', detail: 'Segunda dosis de fuerza controlada de la semana.', duration: '30-35 min' },
-  { type: 'recreativo', label: 'Actividad libre / descanso activo', detail: 'Caminata, deporte recreativo, o descanso.', duration: 'Libre' },
-  { type: 'descanso', label: 'Descanso completo', detail: 'Nada estructurado.', duration: '—' },
+/* ---- Chop Wood Carry Water — calendario oficial de 5 días/semana --------- */
+// Fuente: CWCW Workout Calendar 5-Day (BODi, 2023). 20 workouts / 4 semanas
+// oficiales. Se añade una 5ª semana como refuerzo propio (no oficial) antes
+// de pasar a Dig Deeper, repitiendo la rotación de la semana 1.
+const CWCW_WEEKS_OFFICIAL = [
+  // Semana 1
+  [
+    { type: 'primal', label: 'Chest & Back — Tempo Strength', detail: 'Rutina oficial CWCW semana 1, lunes.', duration: '30-35 min' },
+    { type: 'primal', label: 'Shoulders — Hot Start',         detail: 'Rutina oficial CWCW semana 1, martes.', duration: '25-30 min' },
+    { type: 'primal', label: 'Legs — EMOM Circuit',           detail: 'Rutina oficial CWCW semana 1, miércoles.', duration: '30 min' },
+    { type: 'primal', label: 'Arms & Flow — Burnout',         detail: 'Rutina oficial CWCW semana 1, jueves.', duration: '25-30 min' },
+    { type: 'primal', label: 'Total Body — MixMet Vol. 1',    detail: 'Rutina oficial CWCW semana 1, viernes. Bonus opcional: Recovery — Primal Movement Activation.', duration: '30-35 min' },
+    { type: 'recreativo', label: 'Active Rest Day', detail: 'Descanso activo oficial: movimiento libre y suave.', duration: 'Libre' },
+    { type: 'recreativo', label: 'Active Rest Day', detail: 'Descanso activo oficial: movimiento libre y suave.', duration: 'Libre' },
+  ],
+  // Semana 2
+  [
+    { type: 'primal', label: 'Chest & Back — EMOM Circuit',   detail: 'Rutina oficial CWCW semana 2, lunes.', duration: '30 min' },
+    { type: 'primal', label: 'Shoulders — Tempo Strength',    detail: 'Rutina oficial CWCW semana 2, martes.', duration: '30-35 min' },
+    { type: 'primal', label: 'Legs — Burnout',                detail: 'Rutina oficial CWCW semana 2, miércoles.', duration: '25-30 min' },
+    { type: 'primal', label: 'Arms & Flow — Hot Start',       detail: 'Rutina oficial CWCW semana 2, jueves. Bonus opcional: Recovery — Joint Mobilization.', duration: '25-30 min' },
+    { type: 'primal', label: 'Total Body — MixMet Vol. 2',    detail: 'Rutina oficial CWCW semana 2, viernes.', duration: '30-35 min' },
+    { type: 'recreativo', label: 'Active Rest Day', detail: 'Descanso activo oficial: movimiento libre y suave.', duration: 'Libre' },
+    { type: 'recreativo', label: 'Active Rest Day', detail: 'Descanso activo oficial: movimiento libre y suave.', duration: 'Libre' },
+  ],
+  // Semana 3
+  [
+    { type: 'primal', label: 'Chest & Back — Hot Start',      detail: 'Rutina oficial CWCW semana 3, lunes.', duration: '25-30 min' },
+    { type: 'primal', label: 'Shoulders — Burnout',           detail: 'Rutina oficial CWCW semana 3, martes.', duration: '25-30 min' },
+    { type: 'primal', label: 'Legs — Tempo Strength',         detail: 'Rutina oficial CWCW semana 3, miércoles.', duration: '30-35 min' },
+    { type: 'primal', label: 'Arms & Flow — EMOM Circuit',    detail: 'Rutina oficial CWCW semana 3, jueves.', duration: '30 min' },
+    { type: 'primal', label: 'Total Body — MixMet Vol. 3',    detail: 'Rutina oficial CWCW semana 3, viernes. Bonus opcional: Recovery — Full Body Foam Rolling.', duration: '30-35 min' },
+    { type: 'recreativo', label: 'Active Rest Day', detail: 'Descanso activo oficial: movimiento libre y suave.', duration: 'Libre' },
+    { type: 'recreativo', label: 'Active Rest Day', detail: 'Descanso activo oficial: movimiento libre y suave.', duration: 'Libre' },
+  ],
+  // Semana 4 (semana de recovery/bonus, cierre de la colección de 20 workouts)
+  [
+    { type: 'movilidad', label: 'Recovery — Primal Movement Activation', detail: 'Rutina oficial CWCW semana 4, lunes. Bonus opcional: TGU-T.', duration: '20-25 min' },
+    { type: 'primal',    label: 'Total Body — Primal Movement Flow',     detail: 'Rutina oficial CWCW semana 4, martes.', duration: '30 min' },
+    { type: 'movilidad', label: 'Recovery — Joint Mobilization',         detail: 'Rutina oficial CWCW semana 4, miércoles. Bonus opcional: Primal Movement Cardio.', duration: '20-25 min' },
+    { type: 'movilidad', label: 'Recovery — Full Body Foam Rolling',     detail: 'Rutina oficial CWCW semana 4, jueves. Bonus opcional: Primal Movement Flow Express.', duration: '20-25 min' },
+    { type: 'primal',    label: 'Total Body — MixMet Vol. 4',            detail: 'Rutina oficial CWCW semana 4, viernes. Cierre de la colección de 20 workouts.', duration: '30-35 min' },
+    { type: 'recreativo', label: 'Active Rest Day', detail: 'Descanso activo oficial: movimiento libre y suave.', duration: 'Libre' },
+    { type: 'recreativo', label: 'Active Rest Day', detail: 'Descanso activo oficial: movimiento libre y suave.', duration: 'Libre' },
+  ],
 ];
 
-function digDeeperPattern(round, collection) {
-  const tag = round === 2 ? ' (R2 · +peso)' : '';
-  return [
-    { type: 'fuerza', label: `${collection} — Empuje${tag}`,  detail: 'Press de banca/hombro, fondos, accesorios de tríceps.', duration: '35-50 min' },
-    { type: 'fuerza', label: `${collection} — Tracción${tag}`, detail: 'Remo, dominadas/jalones, accesorios de bíceps y espalda.', duration: '35-50 min' },
-    { type: 'fuerza', label: `${collection} — Pierna${tag}`,  detail: 'Sentadilla, peso muerto, zancadas, gemelo.', duration: '35-50 min' },
-    { type: 'fuerza', label: `${collection} — Upper Body${tag}`, detail: 'Combinado de empuje/tracción superior, mayor densidad.', duration: '35-50 min' },
-    { type: 'fuerza', label: `${collection} — Total Body${tag}`, detail: 'Movimientos compuestos, cierre de la semana de fuerza.', duration: '35-50 min' },
-    { type: 'cardio', label: 'Cardio de bajo impacto', detail: 'Opcional pero recomendado para la parte de "definición".', duration: '20-30 min' },
-    { type: 'descanso', label: 'Descanso completo', detail: 'Nada estructurado.', duration: '—' },
-  ];
+function cwcwWeekPattern(weekOfPhase) {
+  // weekOfPhase: 1-5 (semana 5 es un refuerzo propio, no oficial, que repite la rotación de la semana 1)
+  const idx = Math.min(weekOfPhase, 4) - 1;
+  const base = CWCW_WEEKS_OFFICIAL[idx];
+  if (weekOfPhase <= 4) return base;
+  // Semana 5 (extra, propia): repetición de la semana 1 con nota de refuerzo
+  return base.map(d => d.label.includes('Active Rest') ? d : { ...d, detail: d.detail + ' (Semana 5: repaso/refuerzo añadido antes de Dig Deeper, no forma parte de las 4 semanas oficiales).' });
+}
+
+/* ---- Dig Deeper — calendario oficial de 12 semanas ------------------------ */
+// Fuente: Dig Deeper "Ultimate 12-Week Body Recomposition Calendar" (BODi, 2023).
+// Cada colección de 4 semanas usa los MISMOS nombres de rutina las 4 semanas;
+// lo que cambia es el peso/intensidad, no el nombre.
+const DIGDEEPER_COLLECTION_PATTERNS = {
+  'Dynamic Circuits': (cardioNum) => [
+    { type: 'fuerza', label: 'Upper Body Circuit 1', detail: 'Rutina oficial Dig Deeper — Dynamic Circuits, lunes.', duration: '35-50 min' },
+    { type: 'fuerza', label: 'Lower Body Circuit 1',  detail: 'Rutina oficial Dig Deeper — Dynamic Circuits, martes.', duration: '35-50 min' },
+    { type: 'fuerza', label: 'Total Body Circuit',    detail: 'Rutina oficial Dig Deeper — Dynamic Circuits, miércoles.', duration: '35-50 min' },
+    { type: 'fuerza', label: 'Upper Body Circuit 2',  detail: 'Rutina oficial Dig Deeper — Dynamic Circuits, jueves.', duration: '35-50 min' },
+    { type: 'fuerza', label: 'Lower Body Circuit 2',  detail: 'Rutina oficial Dig Deeper — Dynamic Circuits, viernes.', duration: '35-50 min' },
+    { type: 'cardio', label: `Steady State Cardio ${cardioNum} (opcional)`, detail: 'Cardio zona 2 de bajo impacto. Opcional, recomendado para la parte de definición.', duration: '20-30 min' },
+    { type: 'descanso', label: 'Rest', detail: 'Descanso oficial del programa Dig Deeper.', duration: '—' },
+  ],
+  'Sculpt & Define': (cardioNum) => [
+    { type: 'fuerza', label: 'Total Body',                  detail: 'Rutina oficial Dig Deeper — Sculpt & Define, lunes.', duration: '35-50 min' },
+    { type: 'fuerza', label: 'Chest & Back',                detail: 'Rutina oficial Dig Deeper — Sculpt & Define, martes.', duration: '35-50 min' },
+    { type: 'fuerza', label: 'Legs',                        detail: 'Rutina oficial Dig Deeper — Sculpt & Define, miércoles.', duration: '35-50 min' },
+    { type: 'fuerza', label: 'Shoulders, Glutes, & Abs',    detail: 'Rutina oficial Dig Deeper — Sculpt & Define, jueves.', duration: '35-50 min' },
+    { type: 'fuerza', label: 'Bis & Tris',                  detail: 'Rutina oficial Dig Deeper — Sculpt & Define, viernes.', duration: '35-50 min' },
+    { type: 'cardio', label: `Steady State Cardio ${cardioNum} (opcional)`, detail: 'Cardio zona 2 de bajo impacto. Opcional, recomendado para la parte de definición.', duration: '20-30 min' },
+    { type: 'descanso', label: 'Rest', detail: 'Descanso oficial del programa Dig Deeper.', duration: '—' },
+  ],
+  'The Build': (cardioNum) => [
+    { type: 'fuerza', label: 'Chest',              detail: 'Rutina oficial Dig Deeper — The Build, lunes.', duration: '35-50 min' },
+    { type: 'fuerza', label: 'Back & Abs',         detail: 'Rutina oficial Dig Deeper — The Build, martes.', duration: '35-50 min' },
+    { type: 'fuerza', label: 'Arms',               detail: 'Rutina oficial Dig Deeper — The Build, miércoles.', duration: '35-50 min' },
+    { type: 'fuerza', label: 'Legs',               detail: 'Rutina oficial Dig Deeper — The Build, jueves.', duration: '35-50 min' },
+    { type: 'fuerza', label: 'Shoulders & Abs',    detail: 'Rutina oficial Dig Deeper — The Build, viernes.', duration: '35-50 min' },
+    { type: 'cardio', label: `Steady State Cardio ${cardioNum} (opcional)`, detail: 'Cardio zona 2 de bajo impacto. Opcional, recomendado para la parte de definición.', duration: '20-30 min' },
+    { type: 'descanso', label: 'Rest', detail: 'Descanso oficial del programa Dig Deeper.', duration: '—' },
+  ],
+};
+
+function digDeeperPattern(round, collection, cardioNum) {
+  const base = DIGDEEPER_COLLECTION_PATTERNS[collection](cardioNum);
+  if (round !== 2) return base;
+  // Ronda 2: mismos nombres oficiales, solo se anota la sobrecarga progresiva en el detalle.
+  return base.map(d => d.type === 'fuerza'
+    ? { ...d, label: `${d.label} (R2)`, detail: d.detail + ' Ronda 2: aplica sobrecarga progresiva (más peso que en la Ronda 1).' }
+    : d);
 }
 
 const TRANSITION_PATTERN = [
@@ -113,19 +186,18 @@ const TRANSITION_PATTERN = [
 ];
 
 const DIGDEEPER_COLLECTIONS_R1 = [
-  { weeks: [24,25,26,27], name: 'Dynamic Circuits' },
-  { weeks: [28,29,30,31], name: 'Sculpt & Define' },
-  { weeks: [32,33,34,35], name: 'The Build' },
+  { weeks: [24,25,26,27], name: 'Dynamic Circuits', cardioNum: 1 },
+  { weeks: [28,29,30,31], name: 'Sculpt & Define',  cardioNum: 2 },
+  { weeks: [32,33,34,35], name: 'The Build',         cardioNum: 3 },
 ];
 const DIGDEEPER_COLLECTIONS_R2 = [
-  { weeks: [37,38,39,40], name: 'Dynamic Circuits' },
-  { weeks: [41,42,43,44], name: 'Sculpt & Define' },
-  { weeks: [45,46,47,48], name: 'The Build' },
+  { weeks: [37,38,39,40], name: 'Dynamic Circuits', cardioNum: 1 },
+  { weeks: [41,42,43,44], name: 'Sculpt & Define',  cardioNum: 2 },
+  { weeks: [45,46,47,48], name: 'The Build',         cardioNum: 3 },
 ];
 
 function collectionForWeek(week, table) {
-  const found = table.find(c => c.weeks.includes(week));
-  return found ? found.name : 'The Build';
+  return table.find(c => c.weeks.includes(week)) || table[table.length - 1];
 }
 
 /* ---- Generador de patrón diario según semana ----------------------------- */
@@ -139,20 +211,24 @@ function getWeekPattern(week) {
     case 'deload':
       return DELOAD_PATTERN;
     case 'phase1': {
-      if ([7, 11, 15].includes(week)) return DELOAD_PATTERN; // deload incorporado al final de cada etapa
-      if (week === 16) return phase1PerformanceWeek();
+      // semanas 4-6 de mi calendario = semanas 1-3 de 645 → versión 5 días (modificación propia)
       if (week <= 6) return phase1Pattern5day();
+      const weekOfProgram = week - 3; // semana 1-13 del programa oficial 645
+      if ([4, 8, 12].includes(weekOfProgram)) return phase1Pattern6day('Descarga · mismo movimiento, menos volumen');
+      if (weekOfProgram === 13) return phase1Pattern6day('Semana de Rendimiento');
       return phase1Pattern6day();
     }
-    case 'phase2':
-      return CWCW_PATTERN;
+    case 'phase2': {
+      const weekOfProgram = week - 17; // semana 1-5 de CWCW (4 oficiales + 1 refuerzo propio)
+      return cwcwWeekPattern(weekOfProgram);
+    }
     case 'phase3': {
-      const collection = collectionForWeek(week, DIGDEEPER_COLLECTIONS_R1);
-      return digDeeperPattern(1, collection);
+      const c = collectionForWeek(week, DIGDEEPER_COLLECTIONS_R1);
+      return digDeeperPattern(1, c.name, c.cardioNum);
     }
     case 'phase4': {
-      const collection = collectionForWeek(week, DIGDEEPER_COLLECTIONS_R2);
-      return digDeeperPattern(2, collection);
+      const c = collectionForWeek(week, DIGDEEPER_COLLECTIONS_R2);
+      return digDeeperPattern(2, c.name, c.cardioNum);
     }
     case 'transition':
       return TRANSITION_PATTERN;
@@ -210,7 +286,7 @@ function buildFullCalendar(startDateInput) {
       workoutLabel: workout.label,
       workoutDetail: workout.detail,
       workoutDuration: workout.duration,
-      isRest: workout.type === 'descanso',
+      isRest: workout.type === 'descanso' || /rest day/i.test(workout.label),
     });
   }
   return days;
