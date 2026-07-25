@@ -43,7 +43,9 @@ function refreshAll() {
 
   State.activeUserData = STORAGE.getUserData(State.activeUserId);
   if (State.activeUserData.startDate) {
-    State.calendar = PROGRAM.buildFullCalendar(State.activeUserData.startDate);
+    State.calendar = PROGRAM.buildFullCalendar(State.activeUserData.startDate, {
+      includePrep: State.activeUserData.settings.includePrepPhase,
+    });
   } else {
     State.calendar = null;
   }
@@ -74,9 +76,17 @@ function bindGlobalEvents() {
     const val = document.getElementById('startDateInput').value;
     if (!val) { toast('Elige una fecha primero'); return; }
     State.activeUserData.startDate = val;
+    State.activeUserData.settings.includePrepPhase = document.getElementById('prepToggle').checked;
     STORAGE.saveUserData(State.activeUserId, State.activeUserData);
     toast('Fecha de inicio guardada');
     refreshAll();
+  });
+
+  document.getElementById('prepToggle').addEventListener('change', (e) => {
+    if (!State.activeUserData) return;
+    State.activeUserData.settings.includePrepPhase = e.target.checked;
+    STORAGE.saveUserData(State.activeUserId, State.activeUserData);
+    if (State.activeUserData.startDate) { toast('Calendario actualizado'); refreshAll(); }
   });
 
   document.getElementById('measurementForm').addEventListener('submit', onAddMeasurement);
@@ -228,6 +238,7 @@ function renderInicio() {
   const data = State.activeUserData;
 
   document.getElementById('startDateInput').value = data.startDate || '';
+  document.getElementById('prepToggle').checked = data.settings.includePrepPhase;
   const note = document.getElementById('startDateNote');
 
   if (!State.calendar) {
@@ -247,7 +258,7 @@ function renderInicio() {
   const { todayIdx, currentDay, completedCount, adherencePct } = getProgressStatus(State.calendar, data.completedDays);
 
   document.getElementById('statPhase').textContent = currentDay.phaseName;
-  document.getElementById('statWeek').textContent = `Semana ${currentDay.week} de 52`;
+  document.getElementById('statWeek').textContent = `Semana ${currentDay.week} de ${State.calendar.totalWeeks}`;
   document.getElementById('statCompleted').textContent = `${completedCount} / ${State.calendar.length}`;
   document.getElementById('statAdherence').textContent = `${adherencePct}%`;
   document.getElementById('statStreak').textContent = `${computeStreak(data)} días`;
@@ -342,9 +353,10 @@ function renderRing(currentDay) {
   bg.setAttribute('fill', 'none'); bg.setAttribute('stroke', '#22262e'); bg.setAttribute('stroke-width', strokeWidth);
   svg.appendChild(bg);
 
-  const totalDays = PROGRAM.TOTAL_DAYS;
+  const phases = State.calendar ? State.calendar.phases : PROGRAM.DEFAULT_PHASES;
+  const totalDays = State.calendar ? State.calendar.totalDays : PROGRAM.DEFAULT_TOTAL_WEEKS * 7;
 
-  PROGRAM.PHASES.forEach(phase => {
+  phases.forEach(phase => {
     const startFrac = ((phase.weekStart - 1) * 7) / totalDays;
     const endFrac = (phase.weekEnd * 7) / totalDays;
     const arcLen = (endFrac - startFrac) * circumference;
@@ -377,7 +389,7 @@ function renderRing(currentDay) {
     document.getElementById('ringDayLabel').textContent = '—';
   }
 
-  PROGRAM.PHASES.filter((p, i, arr) => arr.findIndex(x => x.short === p.short) === i).forEach(phase => {
+  phases.filter((p, i, arr) => arr.findIndex(x => x.short === p.short) === i).forEach(phase => {
     const span = document.createElement('span');
     span.innerHTML = `<i style="background:${phase.color}"></i>${phase.short}`;
     legend.appendChild(span);
@@ -407,7 +419,7 @@ function renderCalendario() {
   filterEl.appendChild(allChip);
 
   const seen = new Set();
-  PROGRAM.PHASES.forEach(phase => {
+  State.calendar.phases.forEach(phase => {
     if (seen.has(phase.name)) return;
     seen.add(phase.name);
     const chip = document.createElement('button');
@@ -421,11 +433,12 @@ function renderCalendario() {
   container.innerHTML = '';
   const todayIso = PROGRAM.fmtISO(new Date());
 
-  for (let week = 1; week <= PROGRAM.TOTAL_WEEKS; week++) {
+  for (let week = 1; week <= State.calendar.totalWeeks; week++) {
     const weekDays = State.calendar.filter(d => d.week === week);
     if (State.calendarFilter && weekDays[0].phaseId !== State.calendarFilter) continue;
 
     const doneCount = weekDays.filter(d => State.activeUserData.completedDays[d.isoDate]).length;
+    const banner = weekDays[0].weekBanner;
 
     const block = document.createElement('div');
     block.className = 'week-block';
@@ -433,6 +446,7 @@ function renderCalendario() {
       <div class="week-block__header">
         <span class="dot" style="background:${weekDays[0].phaseColor}"></span>
         Semana ${week} · ${weekDays[0].phaseName} · ${weekDays[0].humanDate} — ${weekDays[6].humanDate}
+        ${banner ? `<span class="week-banner">${banner}</span>` : ''}
         <span class="week-progress">${doneCount}/7 completados</span>
       </div>
       <div class="day-grid"></div>
@@ -468,13 +482,14 @@ function openDayModal(day) {
   body.innerHTML = `
     <div style="font-size:34px; margin-bottom:8px;">${meta.icon}</div>
     <h3 class="modal-title">${day.workoutLabel}</h3>
-    <div class="modal-sub">${day.weekdayName} ${day.humanDate} · Día ${day.index}/364</div>
+    <div class="modal-sub">${day.weekdayName} ${day.humanDate} · Día ${day.index}/${State.calendar.totalDays}</div>
     <p class="modal-detail">${day.workoutDetail}</p>
     <div class="modal-meta">
       <span>⏱ ${day.workoutDuration}</span>
       <span>📍 ${day.phaseName}</span>
       <span>📅 Semana ${day.week}</span>
     </div>
+    ${day.weekBanner ? `<div class="week-banner" style="display:block; margin-bottom:14px;">${day.weekBanner}</div>` : ''}
     <button class="check-toggle ${isDone ? 'done' : ''}" id="modalCheckBtn" style="width:100%; justify-content:center; display:flex;">
       ${isDone ? '✓ Completado — quitar marca' : 'Marcar como completado'}
     </button>
@@ -513,7 +528,7 @@ function renderProgreso() {
   // Adherencia por fase
   if (State.calendar) {
     const uniquePhases = [];
-    PROGRAM.PHASES.forEach(p => { if (!uniquePhases.find(x => x.name === p.name)) uniquePhases.push(p); });
+    State.calendar.phases.forEach(p => { if (!uniquePhases.find(x => x.name === p.name)) uniquePhases.push(p); });
     const labels = uniquePhases.map(p => p.short);
     const colors = uniquePhases.map(p => p.color);
     const values = uniquePhases.map(p => {
@@ -812,7 +827,7 @@ function renderComparar() {
     let calendar = null;
     let progress = { currentDay: null, completedCount: 0, adherencePct: 0 };
     if (data.startDate) {
-      calendar = PROGRAM.buildFullCalendar(data.startDate);
+      calendar = PROGRAM.buildFullCalendar(data.startDate, { includePrep: data.settings.includePrepPhase });
       progress = getProgressStatus(calendar, data.completedDays);
     }
     const currentDay = progress.currentDay;
@@ -828,7 +843,7 @@ function renderComparar() {
       <tr>
         <td><span style="color:${color}">●</span> ${u.name}</td>
         <td>${data.startDate || '—'}</td>
-        <td class="num">${currentDay ? currentDay.index + '/364' : '—'}</td>
+        <td class="num">${currentDay ? currentDay.index + '/' + calendar.totalDays : '—'}</td>
         <td>${currentDay ? currentDay.phaseShort : '—'}</td>
         <td class="num">${completedCount}</td>
         <td class="num">${adherencePct}%</td>
@@ -845,7 +860,7 @@ function renderComparar() {
   const adherenceValues = selectedUsers.map(u => {
     const data = STORAGE.getUserData(u.id);
     if (!data.startDate) return 0;
-    const calendar = PROGRAM.buildFullCalendar(data.startDate);
+    const calendar = PROGRAM.buildFullCalendar(data.startDate, { includePrep: data.settings.includePrepPhase });
     return getProgressStatus(calendar, data.completedDays).adherencePct;
   });
   CHARTS.renderBarChart('compareAdherenceChart', adherenceLabels, adherenceValues, selectedUsers.map((_, i) => CHARTS.CHART_COLORS[i % CHARTS.CHART_COLORS.length]));

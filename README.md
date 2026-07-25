@@ -1,10 +1,27 @@
 # Forjado — 645 → Chop Wood Carry Water → Dig Deeper
 
-Web app de seguimiento de entrenamiento y nutrición para el plan anual
-645 → Chop Wood Carry Water → Dig Deeper. Incluye calendario de 52 semanas,
-checklist diario, gráficas de progreso, registro de medidas corporales,
-calculadoras de nutrición (proteína, TMB/TDEE, macros) y comparación entre
-varios usuarios.
+Web app de seguimiento de entrenamiento y nutrición para el plan
+645 → Chop Wood Carry Water → Dig Deeper. Incluye calendario dinámico
+(49 o 52 semanas según si activas la Fase 0 opcional), checklist diario,
+gráficas de progreso, registro de medidas corporales, calculadoras de
+nutrición (proteína, TMB/TDEE, macros) y comparación entre varios usuarios.
+
+## Fidelidad a los calendarios oficiales de BODi
+
+Los nombres y el orden de cada rutina diaria replican exactamente los
+calendarios oficiales de 645, Chop Wood Carry Water (versión de 5 días) y
+Dig Deeper (12 semanas / 3 colecciones).
+
+**Fase 0 · Preparación (opcional, no oficial):** 645 no tiene una "semana 0"
+en su calendario oficial — empieza directo en la Semana 1 de la Etapa 1. Esta
+app incluye, de forma **opcional y desactivable por usuario**, una fase previa
+de 3 semanas pensada para quienes llevan mucho tiempo sin entrenar. No inventa
+rutinas nuevas: reutiliza las 6 rutinas oficiales de 645 (Lower Body Strength,
+Total Body Power, Mobility & Stability, Upper Body Strength, Total Body Tempo,
+Cardio 45), reordenadas y a menor frecuencia como rampa de entrada progresiva.
+Cada usuario decide si la activa (checkbox en la pestaña Inicio) — si la
+desactiva, su calendario empieza directo en la Fase 1 (645) igual que el
+programa oficial, y el total pasa de 52 a 49 semanas automáticamente.
 
 Es un sitio 100% estático (HTML/CSS/JS puro, sin backend ni build step),
 pensado para desplegarse directamente en **GitHub Pages**.

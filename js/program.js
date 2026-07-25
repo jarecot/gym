@@ -1,32 +1,70 @@
 /* =========================================================================
    PROGRAM.JS
-   Define la periodización completa: 645 → Chop Wood Carry Water → Dig Deeper
-   52 semanas / 364 días. Genera el calendario completo a partir de una
+   Define la periodización completa: (Fase 0 opcional) → 645 → Chop Wood
+   Carry Water → Dig Deeper. Genera el calendario completo a partir de una
    fecha de inicio elegida por el usuario.
+
+   IMPORTANTE sobre fidelidad a los calendarios oficiales:
+   - 645 no tiene semana 0 oficialmente: su calendario empieza directo en
+     la Semana 1 de la Etapa 1. Por eso Fase 1 (más abajo) reproduce el
+     calendario oficial de 645 sin modificar nombres ni frecuencia.
+   - La "Fase 0 · Preparación" es una fase OPCIONAL, no oficial de BODi,
+     pensada para personas que llevan mucho tiempo sin entrenar. En vez de
+     inventar rutinas nuevas, reutiliza las mismas 6 rutinas oficiales de
+     645 (Lower Body Strength, Total Body Power, Mobility & Stability,
+     Upper Body Strength, Total Body Tempo, Cardio 45), reordenadas y a
+     menor frecuencia, para servir de rampa de entrada hacia el 645 real.
+     Puede activarse o desactivarse por usuario.
    ========================================================================= */
 
-const PHASES = [
-  { id: 'p0',  key:'phase0',      name: 'Fase 0 · Preparación',        short: 'Prep',   weekStart: 1,  weekEnd: 3,  color: '#8C97A8' },
-  { id: 'p1',  key:'phase1',      name: 'Fase 1 · 645',                short: '645',    weekStart: 4,  weekEnd: 16, color: '#C1502E' },
-  { id: 'd1',  key:'deload',      name: 'Descarga activa',             short: 'Desc.',  weekStart: 17, weekEnd: 17, color: '#4C9A6A' },
-  { id: 'p2',  key:'phase2',      name: 'Fase 2 · Chop Wood Carry Water', short: 'CWCW', weekStart: 18, weekEnd: 22, color: '#C9A24B' },
-  { id: 'd2',  key:'deload',      name: 'Descarga activa',             short: 'Desc.',  weekStart: 23, weekEnd: 23, color: '#4C9A6A' },
-  { id: 'p3',  key:'phase3',      name: 'Fase 3 · Dig Deeper (Ronda 1)', short: 'DD·R1', weekStart: 24, weekEnd: 35, color: '#8B6BC7' },
-  { id: 'd3',  key:'deload',      name: 'Descarga activa',             short: 'Desc.',  weekStart: 36, weekEnd: 36, color: '#4C9A6A' },
-  { id: 'p4',  key:'phase4',      name: 'Fase 4 · Dig Deeper (Ronda 2)', short: 'DD·R2', weekStart: 37, weekEnd: 48, color: '#5C6BC0' },
-  { id: 'd4',  key:'deload',      name: 'Descarga activa',             short: 'Desc.',  weekStart: 49, weekEnd: 49, color: '#4C9A6A' },
-  { id: 'tr',  key:'transition',  name: 'Transición · CWCW breve',     short: 'Trans.', weekStart: 50, weekEnd: 52, color: '#8C97A8' },
+/* ---- Definición de fases (longitudes en semanas) -------------------------
+   La Fase 0 es opcional: si se desactiva, todas las fases siguientes se
+   recorren 3 semanas antes y el calendario total pasa de 52 a 49 semanas. */
+const PHASE_BLUEPRINT = [
+  { key: 'phase0',     id: 'p0', name: 'Fase 0 · Preparación (opcional)',    short: 'Prep',   color: '#8C97A8', weeks: 3,  optional: true },
+  { key: 'phase1',     id: 'p1', name: 'Fase 1 · 645',                      short: '645',    color: '#C1502E', weeks: 13 },
+  { key: 'deload',     id: 'd1', name: 'Descarga activa',                   short: 'Desc.',  color: '#4C9A6A', weeks: 1 },
+  { key: 'phase2',     id: 'p2', name: 'Fase 2 · Chop Wood Carry Water',    short: 'CWCW',   color: '#C9A24B', weeks: 5 },
+  { key: 'deload',     id: 'd2', name: 'Descarga activa',                   short: 'Desc.',  color: '#4C9A6A', weeks: 1 },
+  { key: 'phase3',     id: 'p3', name: 'Fase 3 · Dig Deeper (Ronda 1)',     short: 'DD·R1',  color: '#8B6BC7', weeks: 12 },
+  { key: 'deload',     id: 'd3', name: 'Descarga activa',                   short: 'Desc.',  color: '#4C9A6A', weeks: 1 },
+  { key: 'phase4',     id: 'p4', name: 'Fase 4 · Dig Deeper (Ronda 2)',     short: 'DD·R2',  color: '#5C6BC0', weeks: 12 },
+  { key: 'deload',     id: 'd4', name: 'Descarga activa',                   short: 'Desc.',  color: '#4C9A6A', weeks: 1 },
+  { key: 'transition', id: 'tr', name: 'Transición · CWCW breve',          short: 'Trans.', color: '#8C97A8', weeks: 3 },
 ];
 
-const TOTAL_WEEKS = 52;
-const TOTAL_DAYS = TOTAL_WEEKS * 7;
-
-function getPhaseForWeek(week) {
-  return PHASES.find(p => week >= p.weekStart && week <= p.weekEnd);
+/**
+ * Construye la lista de fases con weekStart/weekEnd calculados, según si la
+ * Fase 0 (opcional) está activada o no.
+ */
+function buildPhases(includePrep) {
+  let cursor = 1;
+  const phases = [];
+  PHASE_BLUEPRINT.forEach(bp => {
+    if (bp.optional && !includePrep) return; // se omite la fase 0
+    const weekStart = cursor;
+    const weekEnd = cursor + bp.weeks - 1;
+    phases.push({ id: bp.id, key: bp.key, name: bp.name, short: bp.short, color: bp.color, weekStart, weekEnd });
+    cursor = weekEnd + 1;
+  });
+  return phases;
 }
 
-/* ---- Patrones de día por tipo de semana --------------------------------- */
-// dayInWeek: 0=día1 ... 6=día7 (relativo al inicio elegido por el usuario, no necesariamente lunes real)
+function totalWeeksFor(includePrep) {
+  return PHASE_BLUEPRINT.reduce((sum, bp) => sum + ((bp.optional && !includePrep) ? 0 : bp.weeks), 0);
+}
+
+// Fases "por defecto" (con Fase 0 incluida) — útiles como referencia/leyenda
+// antes de que exista un calendario generado para un usuario.
+const DEFAULT_PHASES = buildPhases(true);
+const DEFAULT_TOTAL_WEEKS = totalWeeksFor(true);
+
+function getPhaseForWeek(week, phases) {
+  return (phases || DEFAULT_PHASES).find(p => week >= p.weekStart && week <= p.weekEnd);
+}
+
+/* ---- Patrones de día genéricos (no oficiales) ----------------------------- */
+// dayInWeek: 0=día1 ... 6=día7 (relativo al inicio elegido por el usuario)
 
 const DELOAD_PATTERN = [
   { type: 'movilidad', label: 'Movilidad articular completa', detail: 'Cadera, hombro, tobillo, columna torácica. Sin prisa.', duration: '20-25 min' },
@@ -38,42 +76,86 @@ const DELOAD_PATTERN = [
   { type: 'descanso',   label: 'Descanso completo',            detail: 'Nada estructurado. Prioriza el sueño.', duration: '—' },
 ];
 
-const PHASE0_PATTERN = [
-  { type: 'fuerza',    label: 'Fuerza básica + movilidad', detail: 'Sentadilla, bisagra de cadera, empuje, tracción, core. Cargas ligeras.', duration: '30-35 min' },
-  { type: 'cardio',    label: 'Cardio zona 2',             detail: 'Caminata inclinada, bici o elíptica. Conversación posible.', duration: '20-30 min' },
-  { type: 'fuerza',    label: 'Fuerza básica + movilidad', detail: 'Sentadilla, bisagra de cadera, empuje, tracción, core. Cargas ligeras.', duration: '30-35 min' },
-  { type: 'cardio',    label: 'Cardio zona 2',             detail: 'Caminata inclinada, bici o elíptica. Conversación posible.', duration: '20-30 min' },
-  { type: 'fuerza',    label: 'Fuerza básica + movilidad', detail: 'Sentadilla, bisagra de cadera, empuje, tracción, core. Cargas ligeras.', duration: '30-35 min' },
-  { type: 'movilidad', label: 'Movilidad + caminata larga',  detail: 'Actividad recreativa de baja intensidad.', duration: '30-40 min' },
-  { type: 'descanso',  label: 'Descanso completo',          detail: 'Nada estructurado.', duration: '—' },
+const TRANSITION_PATTERN = [
+  { type: 'primal',   label: 'Movilidad + fuerza ligera', detail: 'Reset de movilidad antes del Año 2.', duration: '30 min' },
+  { type: 'cardio',   label: 'Cardio',                   detail: 'Zona 2, ritmo conversacional.', duration: '25-30 min' },
+  { type: 'primal',   label: 'Movimiento primal',         detail: 'Patrones de suelo, agilidad, coordinación.', duration: '30 min' },
+  { type: 'cardio',   label: 'Cardio',                   detail: 'Zona 2 o intervalos suaves.', duration: '25-30 min' },
+  { type: 'descanso', label: 'Descanso',                 detail: 'Día libre antes del fin de semana.', duration: '—' },
+  { type: 'recreativo', label: 'Actividad recreativa',   detail: 'Deporte, caminata larga, lo que disfrutes.', duration: 'Libre' },
+  { type: 'descanso', label: 'Descanso completo',        detail: 'Cierre del Año 1. ¡Bien hecho!', duration: '—' },
 ];
 
-// 645 — el calendario oficial usa EXACTAMENTE los mismos nombres de rutina
-// las 13 semanas (incluidas las semanas de descarga y la de rendimiento);
-// lo único que cambia semana a semana es el volumen/intensidad interno de
-// cada rutina, no su nombre. Fuente: 645 Workout Calendar (Beachbody/BODi).
-function phase1Pattern6day(weekLabel) {
-  const tag = weekLabel ? ` (${weekLabel})` : '';
-  return [
-    { type: 'fuerza',    label: `Lower Body Strength${tag}`, detail: 'Rutina oficial 645 del lunes: fuerza de tren inferior.', duration: '45 min' },
-    { type: 'fuerza',    label: `Total Body Power${tag}`,    detail: 'Rutina oficial 645 del martes: potencia total-body.', duration: '45 min' },
-    { type: 'movilidad', label: `Mobility & Stability${tag}`, detail: 'Rutina oficial 645 del miércoles: movilidad y estabilidad.', duration: '45 min' },
-    { type: 'fuerza',    label: `Upper Body Strength${tag}`, detail: 'Rutina oficial 645 del jueves: fuerza de tren superior.', duration: '45 min' },
-    { type: 'fuerza',    label: `Total Body Tempo${tag}`,    detail: 'Rutina oficial 645 del viernes: fuerza total-body a tempo controlado.', duration: '45 min' },
-    { type: 'cardio',    label: `Cardio 45${tag}`,           detail: 'Rutina oficial 645 del sábado: cardio de 45 minutos.', duration: '45 min' },
-    { type: 'descanso',  label: 'Rest',                      detail: 'Descanso oficial del programa 645.', duration: '—' },
-  ];
+/* ---- Fase 0 · Preparación (opcional) --------------------------------------
+   Reutiliza las 6 rutinas OFICIALES de 645 (no se inventan rutinas nuevas),
+   reordenadas y a menor frecuencia como rampa de entrada progresiva:
+   Semana 1: solo Mobility & Stability + Cardio 45 (sin fuerza pesada aún).
+   Semana 2: se introducen Lower/Upper Body Strength, espaciadas con movilidad.
+   Semana 3: se añade Total Body Power, casi a la frecuencia completa oficial,
+             dejando al cuerpo listo para empezar 645 real (Fase 1) sin
+             modificaciones desde su primer día. */
+const PREP_WEEK_PATTERNS = [
+  // Semana de preparación 1 — solo movilidad y cardio, sin fuerza pesada
+  [
+    { type: 'movilidad', label: 'Mobility & Stability', detail: 'Rutina oficial de 645 usada como base de movilidad para reactivar patrones de movimiento.', duration: '45 min' },
+    { type: 'cardio',    label: 'Cardio 45',             detail: 'Rutina oficial de 645. Ritmo suave, zona 2, para reacondicionar el sistema cardiovascular.', duration: '45 min' },
+    { type: 'movilidad', label: 'Mobility & Stability',  detail: 'Segunda dosis de movilidad de la semana.', duration: '45 min' },
+    { type: 'cardio',    label: 'Cardio 45',             detail: 'Ritmo suave, zona 2.', duration: '45 min' },
+    { type: 'movilidad', label: 'Mobility & Stability',  detail: 'Cierre de la semana con movilidad.', duration: '45 min' },
+    { type: 'descanso',  label: 'Descanso / caminata libre', detail: 'Actividad libre y suave si te sientes bien, o descanso completo.', duration: 'Libre' },
+    { type: 'descanso',  label: 'Rest', detail: 'Descanso.', duration: '—' },
+  ],
+  // Semana de preparación 2 — se introduce fuerza básica (Lower/Upper) espaciada con movilidad
+  [
+    { type: 'fuerza',    label: 'Lower Body Strength',  detail: 'Rutina oficial de 645, introducida ahora con cargas conservadoras y foco en técnica.', duration: '45 min' },
+    { type: 'movilidad', label: 'Mobility & Stability',  detail: 'Movilidad entre los dos primeros días de fuerza.', duration: '45 min' },
+    { type: 'fuerza',    label: 'Upper Body Strength',  detail: 'Rutina oficial de 645, cargas conservadoras y foco en técnica.', duration: '45 min' },
+    { type: 'cardio',    label: 'Cardio 45',            detail: 'Ritmo suave-moderado, zona 2.', duration: '45 min' },
+    { type: 'movilidad', label: 'Mobility & Stability',  detail: 'Cierre de la semana con movilidad.', duration: '45 min' },
+    { type: 'descanso',  label: 'Descanso / caminata libre', detail: 'Actividad libre y suave si te sientes bien, o descanso completo.', duration: 'Libre' },
+    { type: 'descanso',  label: 'Rest', detail: 'Descanso.', duration: '—' },
+  ],
+  // Semana de preparación 3 — casi frecuencia completa oficial, se añade Total Body Power/Tempo
+  [
+    { type: 'fuerza',    label: 'Lower Body Strength',  detail: 'Rutina oficial de 645, ya con progresión de carga respecto a la semana anterior.', duration: '45 min' },
+    { type: 'fuerza',    label: 'Total Body Power',     detail: 'Rutina oficial de 645. Se introduce el patrón de potencia total-body por primera vez.', duration: '45 min' },
+    { type: 'movilidad', label: 'Mobility & Stability',  detail: 'Movilidad a mitad de semana.', duration: '45 min' },
+    { type: 'fuerza',    label: 'Upper Body Strength',  detail: 'Rutina oficial de 645, con progresión de carga.', duration: '45 min' },
+    { type: 'fuerza',    label: 'Total Body Tempo',     detail: 'Rutina oficial de 645. Última rutina que faltaba por introducir antes de empezar la Fase 1 completa.', duration: '45 min' },
+    { type: 'cardio',    label: 'Cardio 45',            detail: 'Ya a la frecuencia oficial de 6 días de 645.', duration: '45 min' },
+    { type: 'descanso',  label: 'Rest', detail: 'Descanso, igual que en el calendario oficial de 645.', duration: '—' },
+  ],
+];
+
+function prepWeekPattern(weekOfPhase) {
+  const idx = Math.min(Math.max(weekOfPhase, 1), PREP_WEEK_PATTERNS.length) - 1;
+  return PREP_WEEK_PATTERNS[idx];
 }
 
-function phase1Pattern5day() {
-  // Modificación propia (no oficial) para las primeras 3 semanas: se
-  // mantienen los 5 días de fuerza/movilidad oficiales y se sustituye el
-  // día 6 (Cardio 45) por descanso/caminata libre mientras el cuerpo se
-  // readapta. A partir de la semana 4 de esta fase se usa el calendario
-  // oficial completo de 6 días (ver phase1Pattern6day).
-  const p = phase1Pattern6day();
-  p[5] = { type: 'descanso', label: 'Descanso / caminata libre', detail: 'Versión adaptada: cardio ligero opcional integrado a tus caminatas diarias en vez de Cardio 45.', duration: 'Libre' };
-  return p;
+/* ---- Fase 1 · 645 — calendario oficial exacto -----------------------------
+   Fuente: 645 Workout Calendar (Beachbody/BODi, 2021). El calendario oficial
+   usa EXACTAMENTE los mismos 7 nombres las 13 semanas — incluidas las 3
+   semanas de descarga (fin de cada etapa) y la semana de rendimiento
+   (semana 13). Lo que cambia semana a semana es el volumen/intensidad
+   interno de cada rutina, no su nombre, así que aquí no se modifica nada:
+   se reproduce el calendario oficial tal cual, sin frecuencia reducida. */
+const PHASE1_PATTERN = [
+  { type: 'fuerza',    label: 'Lower Body Strength', detail: 'Rutina oficial 645 del lunes: fuerza de tren inferior.', duration: '45 min' },
+  { type: 'fuerza',    label: 'Total Body Power',    detail: 'Rutina oficial 645 del martes: potencia total-body.', duration: '45 min' },
+  { type: 'movilidad', label: 'Mobility & Stability', detail: 'Rutina oficial 645 del miércoles: movilidad y estabilidad.', duration: '45 min' },
+  { type: 'fuerza',    label: 'Upper Body Strength', detail: 'Rutina oficial 645 del jueves: fuerza de tren superior.', duration: '45 min' },
+  { type: 'fuerza',    label: 'Total Body Tempo',    detail: 'Rutina oficial 645 del viernes: fuerza total-body a tempo controlado.', duration: '45 min' },
+  { type: 'cardio',    label: 'Cardio 45',           detail: 'Rutina oficial 645 del sábado: cardio de 45 minutos.', duration: '45 min' },
+  { type: 'descanso',  label: 'Rest',                detail: 'Descanso oficial del programa 645.', duration: '—' },
+];
+
+// Semanas oficiales de descarga y rendimiento dentro de 645 (según el
+// calendario original: Semana 4, 8 y 12 = Deload Week; Semana 13 = Performance
+// Week). Mismo nombre de rutina, solo cambia el "banner" informativo de la semana.
+function phase1WeekBanner(weekOfProgram) {
+  if ([4, 8, 12].includes(weekOfProgram)) return 'Deload Week — mismo movimiento, menos volumen';
+  if (weekOfProgram === 13) return 'Performance Week — pico de la etapa';
+  return null;
 }
 
 /* ---- Chop Wood Carry Water — calendario oficial de 5 días/semana --------- */
@@ -128,8 +210,7 @@ function cwcwWeekPattern(weekOfPhase) {
   const idx = Math.min(weekOfPhase, 4) - 1;
   const base = CWCW_WEEKS_OFFICIAL[idx];
   if (weekOfPhase <= 4) return base;
-  // Semana 5 (extra, propia): repetición de la semana 1 con nota de refuerzo
-  return base.map(d => d.label.includes('Active Rest') ? d : { ...d, detail: d.detail + ' (Semana 5: repaso/refuerzo añadido antes de Dig Deeper, no forma parte de las 4 semanas oficiales).' });
+  return base.map(d => /active rest day/i.test(d.label) ? d : { ...d, detail: d.detail + ' (Semana 5: repaso/refuerzo añadido antes de Dig Deeper, no forma parte de las 4 semanas oficiales).' });
 }
 
 /* ---- Dig Deeper — calendario oficial de 12 semanas ------------------------ */
@@ -169,65 +250,43 @@ const DIGDEEPER_COLLECTION_PATTERNS = {
 function digDeeperPattern(round, collection, cardioNum) {
   const base = DIGDEEPER_COLLECTION_PATTERNS[collection](cardioNum);
   if (round !== 2) return base;
-  // Ronda 2: mismos nombres oficiales, solo se anota la sobrecarga progresiva en el detalle.
   return base.map(d => d.type === 'fuerza'
     ? { ...d, label: `${d.label} (R2)`, detail: d.detail + ' Ronda 2: aplica sobrecarga progresiva (más peso que en la Ronda 1).' }
     : d);
 }
 
-const TRANSITION_PATTERN = [
-  { type: 'primal',   label: 'Movilidad + fuerza ligera', detail: 'Reset de movilidad antes del Año 2.', duration: '30 min' },
-  { type: 'cardio',   label: 'Cardio',                   detail: 'Zona 2, ritmo conversacional.', duration: '25-30 min' },
-  { type: 'primal',   label: 'Movimiento primal',         detail: 'Patrones de suelo, agilidad, coordinación.', duration: '30 min' },
-  { type: 'cardio',   label: 'Cardio',                   detail: 'Zona 2 o intervalos suaves.', duration: '25-30 min' },
-  { type: 'descanso', label: 'Descanso',                 detail: 'Día libre antes del fin de semana.', duration: '—' },
-  { type: 'recreativo', label: 'Actividad recreativa',   detail: 'Deporte, caminata larga, lo que disfrutes.', duration: 'Libre' },
-  { type: 'descanso', label: 'Descanso completo',        detail: 'Cierre del Año 1. ¡Bien hecho!', duration: '—' },
+const DIGDEEPER_COLLECTIONS = [
+  { weekRange: [1, 4],  name: 'Dynamic Circuits', cardioNum: 1 },
+  { weekRange: [5, 8],  name: 'Sculpt & Define',  cardioNum: 2 },
+  { weekRange: [9, 12], name: 'The Build',         cardioNum: 3 },
 ];
 
-const DIGDEEPER_COLLECTIONS_R1 = [
-  { weeks: [24,25,26,27], name: 'Dynamic Circuits', cardioNum: 1 },
-  { weeks: [28,29,30,31], name: 'Sculpt & Define',  cardioNum: 2 },
-  { weeks: [32,33,34,35], name: 'The Build',         cardioNum: 3 },
-];
-const DIGDEEPER_COLLECTIONS_R2 = [
-  { weeks: [37,38,39,40], name: 'Dynamic Circuits', cardioNum: 1 },
-  { weeks: [41,42,43,44], name: 'Sculpt & Define',  cardioNum: 2 },
-  { weeks: [45,46,47,48], name: 'The Build',         cardioNum: 3 },
-];
-
-function collectionForWeek(week, table) {
-  return table.find(c => c.weeks.includes(week)) || table[table.length - 1];
+function collectionForProgramWeek(weekOfProgram) {
+  return DIGDEEPER_COLLECTIONS.find(c => weekOfProgram >= c.weekRange[0] && weekOfProgram <= c.weekRange[1])
+    || DIGDEEPER_COLLECTIONS[DIGDEEPER_COLLECTIONS.length - 1];
 }
 
 /* ---- Generador de patrón diario según semana ----------------------------- */
-function getWeekPattern(week) {
-  const phase = getPhaseForWeek(week);
+function getWeekPattern(week, phases) {
+  const phase = getPhaseForWeek(week, phases);
   if (!phase) return DELOAD_PATTERN;
+  const weekOfProgram = week - phase.weekStart + 1; // semana 1..N dentro de la fase actual
 
   switch (phase.key) {
     case 'phase0':
-      return PHASE0_PATTERN;
+      return prepWeekPattern(weekOfProgram);
     case 'deload':
       return DELOAD_PATTERN;
-    case 'phase1': {
-      // semanas 4-6 de mi calendario = semanas 1-3 de 645 → versión 5 días (modificación propia)
-      if (week <= 6) return phase1Pattern5day();
-      const weekOfProgram = week - 3; // semana 1-13 del programa oficial 645
-      if ([4, 8, 12].includes(weekOfProgram)) return phase1Pattern6day('Descarga · mismo movimiento, menos volumen');
-      if (weekOfProgram === 13) return phase1Pattern6day('Semana de Rendimiento');
-      return phase1Pattern6day();
-    }
-    case 'phase2': {
-      const weekOfProgram = week - 17; // semana 1-5 de CWCW (4 oficiales + 1 refuerzo propio)
+    case 'phase1':
+      return PHASE1_PATTERN; // calendario oficial 645, sin modificar
+    case 'phase2':
       return cwcwWeekPattern(weekOfProgram);
-    }
     case 'phase3': {
-      const c = collectionForWeek(week, DIGDEEPER_COLLECTIONS_R1);
+      const c = collectionForProgramWeek(weekOfProgram);
       return digDeeperPattern(1, c.name, c.cardioNum);
     }
     case 'phase4': {
-      const c = collectionForWeek(week, DIGDEEPER_COLLECTIONS_R2);
+      const c = collectionForProgramWeek(weekOfProgram);
       return digDeeperPattern(2, c.name, c.cardioNum);
     }
     case 'transition':
@@ -235,6 +294,13 @@ function getWeekPattern(week) {
     default:
       return DELOAD_PATTERN;
   }
+}
+
+function getWeekBanner(week, phases) {
+  const phase = getPhaseForWeek(week, phases);
+  if (!phase || phase.key !== 'phase1') return null;
+  const weekOfProgram = week - phase.weekStart + 1;
+  return phase1WeekBanner(weekOfProgram);
 }
 
 /* ---- Utilidad de fechas ---------------------------------------------------- */
@@ -253,35 +319,46 @@ function fmtHuman(date) {
 }
 
 /**
- * Genera el calendario completo de 364 días a partir de una fecha de inicio (Date, o string ISO).
- * Devuelve un array de objetos día con toda la info necesaria para render y tracking.
+ * Genera el calendario completo a partir de una fecha de inicio (Date, o
+ * string ISO). `options.includePrep` (default true) determina si se incluye
+ * la Fase 0 opcional; el total de semanas se ajusta automáticamente (52 con
+ * Fase 0, 49 sin ella).
+ * Devuelve un array de días con propiedades extra: .phases, .totalWeeks,
+ * .totalDays e .includePrep, para que el resto de la app no dependa de
+ * constantes globales fijas.
  */
-function buildFullCalendar(startDateInput) {
+function buildFullCalendar(startDateInput, options) {
+  const includePrep = options && typeof options.includePrep === 'boolean' ? options.includePrep : true;
+  const phases = buildPhases(includePrep);
+  const totalWeeks = totalWeeksFor(includePrep);
+  const totalDays = totalWeeks * 7;
+
   const startDate = typeof startDateInput === 'string' ? new Date(startDateInput + 'T00:00:00') : new Date(startDateInput);
   const days = [];
 
-  for (let i = 0; i < TOTAL_DAYS; i++) {
+  for (let i = 0; i < totalDays; i++) {
     const date = new Date(startDate);
     date.setDate(date.getDate() + i);
 
     const week = Math.floor(i / 7) + 1;
     const dayInWeek = i % 7; // 0-6
-    const phase = getPhaseForWeek(week);
-    const pattern = getWeekPattern(week);
+    const phase = getPhaseForWeek(week, phases);
+    const pattern = getWeekPattern(week, phases);
     const workout = pattern[dayInWeek];
 
     days.push({
-      index: i + 1,                    // día 1..364
+      index: i + 1,
       isoDate: fmtISO(date),
       humanDate: fmtHuman(date),
       weekdayName: WEEKDAY_NAMES[date.getDay() === 0 ? 6 : date.getDay() - 1],
       week,
-      dayInWeek: dayInWeek + 1,        // 1..7
+      dayInWeek: dayInWeek + 1,
       phaseId: phase ? phase.id : null,
       phaseKey: phase ? phase.key : null,
       phaseName: phase ? phase.name : '—',
       phaseShort: phase ? phase.short : '—',
       phaseColor: phase ? phase.color : '#666',
+      weekBanner: getWeekBanner(week, phases),
       workoutType: workout.type,
       workoutLabel: workout.label,
       workoutDetail: workout.detail,
@@ -289,6 +366,11 @@ function buildFullCalendar(startDateInput) {
       isRest: workout.type === 'descanso' || /rest day/i.test(workout.label),
     });
   }
+
+  days.phases = phases;
+  days.totalWeeks = totalWeeks;
+  days.totalDays = totalDays;
+  days.includePrep = includePrep;
   return days;
 }
 
@@ -304,6 +386,7 @@ const WORKOUT_TYPE_META = {
 
 // Exponer en window para uso desde app.js (sin módulos, para simplicidad de GitHub Pages)
 window.PROGRAM = {
-  PHASES, TOTAL_WEEKS, TOTAL_DAYS,
+  DEFAULT_PHASES, DEFAULT_TOTAL_WEEKS,
+  buildPhases, totalWeeksFor,
   getPhaseForWeek, buildFullCalendar, WORKOUT_TYPE_META, fmtISO, fmtHuman,
 };

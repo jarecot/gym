@@ -77,11 +77,16 @@
 
         <div class="card">
           <h3 class="card__title">Fecha de inicio</h3>
-          <p class="card__hint">Si aún no has empezado, elige la fecha en la que arrancarás la Fase 0. El calendario completo de 52 semanas se genera automáticamente a partir de este día.</p>
+          <p class="card__hint">Si aún no has empezado, elige la fecha en la que arrancarás. El calendario se genera automáticamente a partir de este día.</p>
           <div class="field-row">
             <input type="date" id="startDateInput" class="input">
             <button class="btn btn--primary" id="saveStartDateBtn">Guardar</button>
           </div>
+          <label class="prep-toggle">
+            <input type="checkbox" id="prepToggle" checked>
+            <span>Incluir Fase 0 · Preparación (opcional, 3 semanas con rutinas oficiales de 645 a menor frecuencia)</span>
+          </label>
+          <p class="fine-print">645 no tiene semana 0 oficialmente — esta fase es una rampa de entrada recomendada si llevas mucho tiempo sin entrenar. Si ya estás activo, puedes desactivarla y empezar directo en la Fase 1 (645), igual que el calendario oficial.</p>
           <p class="fine-print" id="startDateNote"></p>
         </div>
 
@@ -102,7 +107,7 @@
   <!-- ============================= CALENDARIO ============================= -->
   <section class="panel" id="panel-calendario">
     <div class="panel-header">
-      <h2>Calendario completo — 52 semanas</h2>
+      <h2>Calendario completo</h2>
       <p>Haz clic en cualquier día para ver el detalle del entrenamiento y marcarlo como completado.</p>
     </div>
     <div class="phase-filter" id="phaseFilter"></div>

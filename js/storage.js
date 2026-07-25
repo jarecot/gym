@@ -45,6 +45,9 @@ function defaultUserData() {
     startDate: null,          // ISO string, fecha de inicio del programa
     completedDays: {},        // { 'YYYY-MM-DD': true }
     measurements: [],         // [{id, date, weightKg, waist, chest, arm, thigh, bodyFatPct, notes}]
+    settings: {
+      includePrepPhase: true, // Fase 0 opcional (rampa con rutinas oficiales de 645), activable/desactivable
+    },
     nutrition: {
       proteinGPerKg: 1.9,
       goal: 'maintain',
@@ -62,6 +65,7 @@ function getUserData(id) {
       ...defaultUserData(),
       ...parsed,
       profile: { ...defaultUserData().profile, ...(parsed.profile || {}) },
+      settings: { ...defaultUserData().settings, ...(parsed.settings || {}) },
       nutrition: { ...defaultUserData().nutrition, ...(parsed.nutrition || {}) },
     };
   } catch (e) {
