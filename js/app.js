@@ -184,7 +184,7 @@ function onDeleteUser() {
 
 function onExport() {
   const payload = STORAGE.exportAllData();
-  STORAGE.downloadJSON(payload, `forjado-backup-${PROGRAM.fmtISO(new Date())}.json`);
+  STORAGE.downloadJSON(payload, `el-camino-backup-${PROGRAM.fmtISO(new Date())}.json`);
 }
 
 function onImport(e) {

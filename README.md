@@ -1,4 +1,4 @@
-# Forjado — 645 → Chop Wood Carry Water → Dig Deeper
+# El Camino — 645 → Chop Wood Carry Water → Dig Deeper
 
 Web app de seguimiento de entrenamiento y nutrición para el plan
 645 → Chop Wood Carry Water → Dig Deeper. Incluye calendario dinámico
@@ -62,10 +62,10 @@ datos. Por eso esta app guarda todo en el **`localStorage` del navegador**:
 ### Opción B — desde la terminal
 
 ```bash
-cd forjado-app          # esta carpeta
+cd el-camino-app          # esta carpeta
 git init
 git add .
-git commit -m "Forjado: plan de entrenamiento y nutrición"
+git commit -m "El Camino: plan de entrenamiento y nutrición"
 git branch -M main
 git remote add origin https://github.com/TU-USUARIO/TU-REPO.git
 git push -u origin main
@@ -94,7 +94,7 @@ un aviso.
 
 ```
 index.html              Estructura de la app (todas las pestañas)
-css/styles.css           Estilos (tema "Forjado")
+css/styles.css           Estilos (tema "El Camino")
 js/program.js            Periodización completa: fases y calendario de 364 días
 js/calculators.js        Fórmulas de proteína, TMB (Mifflin-St Jeor), TDEE y macros
 js/nutrition-data.js     Tablas de alimentos y banco de comidas de referencia
