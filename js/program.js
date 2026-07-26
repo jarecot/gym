@@ -88,12 +88,24 @@ const TRANSITION_PATTERN = [
 
 /* ---- Fase 0 · Preparación (opcional) --------------------------------------
    Reutiliza las 6 rutinas OFICIALES de 645 (no se inventan rutinas nuevas),
-   reordenadas y a menor frecuencia como rampa de entrada progresiva:
+   reordenadas y aplicando el mismo enfoque que 645 usa en su propia Deload
+   Week. Los materiales oficiales de 645 son explícitos en esto: "the moves,
+   intensity, and volume change weekly and end with a Deload Week where your
+   intensity stays the same, but with less volume". Es decir: Deload NO baja
+   la intensidad/carga, baja el VOLUMEN (menos series o repeticiones).
+   Por eso la Fase 0 combina dos palancas distintas y complementarias:
+   1) Frecuencia semanal reducida (menos días entrenando por semana).
+   2) Estilo Deload dentro de cada sesión: mismas rutinas oficiales, con
+      menos series/repeticiones que las indicadas en el video (el usuario
+      elige además cargas conservadoras, ya que viene de estar inactivo —
+      esto último sí es una recomendación propia, no parte del concepto
+      Deload de BODi).
+   Progresión:
    Semana 1: solo Mobility & Stability + Cardio 45 (sin fuerza pesada aún).
-   Semana 2: se introducen Lower/Upper Body Strength, espaciadas con movilidad.
-   Semana 3: se añade Total Body Power, casi a la frecuencia completa oficial,
-             dejando al cuerpo listo para empezar 645 real (Fase 1) sin
-             modificaciones desde su primer día. */
+   Semana 2: se introducen Lower/Upper Body Strength, estilo Deload, espaciadas con movilidad.
+   Semana 3: se añade Total Body Power/Tempo, casi a frecuencia completa oficial,
+             todavía estilo Deload, dejando al cuerpo listo para empezar 645
+             real (Fase 1) a volumen e intensidad completos desde su día 1. */
 const PREP_WEEK_PATTERNS = [
   // Semana de preparación 1 — solo movilidad y cardio, sin fuerza pesada
   [
@@ -105,23 +117,23 @@ const PREP_WEEK_PATTERNS = [
     { type: 'descanso',  label: 'Descanso / caminata libre', detail: 'Actividad libre y suave si te sientes bien, o descanso completo.', duration: 'Libre' },
     { type: 'descanso',  label: 'Rest', detail: 'Descanso.', duration: '—' },
   ],
-  // Semana de preparación 2 — se introduce fuerza básica (Lower/Upper) espaciada con movilidad
+  // Semana de preparación 2 — se introduce fuerza básica (Lower/Upper), estilo Deload
   [
-    { type: 'fuerza',    label: 'Lower Body Strength',  detail: 'Rutina oficial de 645, introducida ahora con cargas conservadoras y foco en técnica.', duration: '45 min' },
+    { type: 'fuerza',    label: 'Lower Body Strength',  detail: 'Rutina oficial de 645, estilo Deload: haz menos series/repeticiones que las indicadas en el video (mismo movimiento, menos volumen) y elige cargas conservadoras.', duration: '45 min' },
     { type: 'movilidad', label: 'Mobility & Stability',  detail: 'Movilidad entre los dos primeros días de fuerza.', duration: '45 min' },
-    { type: 'fuerza',    label: 'Upper Body Strength',  detail: 'Rutina oficial de 645, cargas conservadoras y foco en técnica.', duration: '45 min' },
+    { type: 'fuerza',    label: 'Upper Body Strength',  detail: 'Rutina oficial de 645, estilo Deload: menos volumen que el indicado, cargas conservadoras.', duration: '45 min' },
     { type: 'cardio',    label: 'Cardio 45',            detail: 'Ritmo suave-moderado, zona 2.', duration: '45 min' },
     { type: 'movilidad', label: 'Mobility & Stability',  detail: 'Cierre de la semana con movilidad.', duration: '45 min' },
     { type: 'descanso',  label: 'Descanso / caminata libre', detail: 'Actividad libre y suave si te sientes bien, o descanso completo.', duration: 'Libre' },
     { type: 'descanso',  label: 'Rest', detail: 'Descanso.', duration: '—' },
   ],
-  // Semana de preparación 3 — casi frecuencia completa oficial, se añade Total Body Power/Tempo
+  // Semana de preparación 3 — casi frecuencia completa oficial, aún estilo Deload
   [
-    { type: 'fuerza',    label: 'Lower Body Strength',  detail: 'Rutina oficial de 645, ya con progresión de carga respecto a la semana anterior.', duration: '45 min' },
-    { type: 'fuerza',    label: 'Total Body Power',     detail: 'Rutina oficial de 645. Se introduce el patrón de potencia total-body por primera vez.', duration: '45 min' },
+    { type: 'fuerza',    label: 'Lower Body Strength',  detail: 'Rutina oficial de 645, estilo Deload: aumenta ligeramente el volumen respecto a la semana anterior, siempre por debajo del volumen completo del video.', duration: '45 min' },
+    { type: 'fuerza',    label: 'Total Body Power',     detail: 'Rutina oficial de 645. Se introduce el patrón de potencia total-body por primera vez, estilo Deload (menos volumen que el indicado).', duration: '45 min' },
     { type: 'movilidad', label: 'Mobility & Stability',  detail: 'Movilidad a mitad de semana.', duration: '45 min' },
-    { type: 'fuerza',    label: 'Upper Body Strength',  detail: 'Rutina oficial de 645, con progresión de carga.', duration: '45 min' },
-    { type: 'fuerza',    label: 'Total Body Tempo',     detail: 'Rutina oficial de 645. Última rutina que faltaba por introducir antes de empezar la Fase 1 completa.', duration: '45 min' },
+    { type: 'fuerza',    label: 'Upper Body Strength',  detail: 'Rutina oficial de 645, estilo Deload: progresión de volumen controlada.', duration: '45 min' },
+    { type: 'fuerza',    label: 'Total Body Tempo',     detail: 'Rutina oficial de 645, estilo Deload. Última rutina que faltaba por introducir antes de empezar la Fase 1 a volumen completo.', duration: '45 min' },
     { type: 'cardio',    label: 'Cardio 45',            detail: 'Ya a la frecuencia oficial de 6 días de 645.', duration: '45 min' },
     { type: 'descanso',  label: 'Rest', detail: 'Descanso, igual que en el calendario oficial de 645.', duration: '—' },
   ],
@@ -130,6 +142,11 @@ const PREP_WEEK_PATTERNS = [
 function prepWeekPattern(weekOfPhase) {
   const idx = Math.min(Math.max(weekOfPhase, 1), PREP_WEEK_PATTERNS.length) - 1;
   return PREP_WEEK_PATTERNS[idx];
+}
+
+function prepWeekBanner(weekOfPhase) {
+  if (weekOfPhase === 1) return 'Fase 0 · Solo movilidad y cardio';
+  return 'Fase 0 · Estilo Deload — mismo movimiento, menor volumen';
 }
 
 /* ---- Fase 1 · 645 — calendario oficial exacto -----------------------------
@@ -298,9 +315,11 @@ function getWeekPattern(week, phases) {
 
 function getWeekBanner(week, phases) {
   const phase = getPhaseForWeek(week, phases);
-  if (!phase || phase.key !== 'phase1') return null;
+  if (!phase) return null;
   const weekOfProgram = week - phase.weekStart + 1;
-  return phase1WeekBanner(weekOfProgram);
+  if (phase.key === 'phase0') return prepWeekBanner(weekOfProgram);
+  if (phase.key === 'phase1') return phase1WeekBanner(weekOfProgram);
+  return null;
 }
 
 /* ---- Utilidad de fechas ---------------------------------------------------- */

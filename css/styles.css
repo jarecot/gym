@@ -300,7 +300,7 @@ a { color: var(--accent); }
 
 .week-block { margin-bottom: 22px; }
 .week-block__header {
-  display: flex; align-items: center; gap: 10px;
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
   font-family: var(--font-display); font-size: 14px; letter-spacing: 0.03em;
   color: var(--text-dim); margin-bottom: 8px;
   padding-left: 2px;
