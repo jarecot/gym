@@ -430,6 +430,15 @@ a { color: var(--accent); }
   background: var(--accent-soft); color: var(--accent);
 }
 
+.week-tag {
+  display: inline-block; padding: 2px 8px;
+  border-radius: 999px; font-size: 10.5px; font-family: var(--font-mono);
+  font-weight: 700; letter-spacing: 0.02em;
+  background: rgba(201, 162, 75, 0.18); color: var(--gold);
+  border: 1px solid rgba(201, 162, 75, 0.35);
+  cursor: help;
+}
+
 .toast {
   position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
   background: var(--surface-3); border: 1px solid var(--border); color: var(--text);

@@ -365,6 +365,14 @@ function buildFullCalendar(startDateInput, options) {
     const pattern = getWeekPattern(week, phases);
     const workout = pattern[dayInWeek];
 
+    // Semana 1..N dentro de la fase actual — sirve para ubicar la rutina en
+    // el calendario oficial (ej. "Week 3" de 645, "Week 2" de CWCW). Solo se
+    // muestra para fases basadas en calendarios oficiales (0-4), no para las
+    // semanas de descarga o la transición, que son bloques propios de una
+    // sola semana sin numeración oficial equivalente.
+    const weekOfProgram = phase ? week - phase.weekStart + 1 : null;
+    const showsOfficialWeek = phase && ['phase1', 'phase2', 'phase3', 'phase4'].includes(phase.key);
+
     days.push({
       index: i + 1,
       isoDate: fmtISO(date),
@@ -377,6 +385,7 @@ function buildFullCalendar(startDateInput, options) {
       phaseName: phase ? phase.name : '—',
       phaseShort: phase ? phase.short : '—',
       phaseColor: phase ? phase.color : '#666',
+      weekOfProgram: showsOfficialWeek ? weekOfProgram : null,
       weekBanner: getWeekBanner(week, phases),
       workoutType: workout.type,
       workoutLabel: workout.label,

@@ -439,13 +439,14 @@ function renderCalendario() {
 
     const doneCount = weekDays.filter(d => State.activeUserData.completedDays[d.isoDate]).length;
     const banner = weekDays[0].weekBanner;
+    const weekTag = officialWeekTag(weekDays[0]);
 
     const block = document.createElement('div');
     block.className = 'week-block';
     block.innerHTML = `
       <div class="week-block__header">
         <span class="dot" style="background:${weekDays[0].phaseColor}"></span>
-        Semana ${week} · ${weekDays[0].phaseName} · ${weekDays[0].humanDate} — ${weekDays[6].humanDate}
+        Semana ${week} · ${weekDays[0].phaseName}${weekTag} · ${weekDays[0].humanDate} — ${weekDays[6].humanDate}
         ${banner ? `<span class="week-banner">${banner}</span>` : ''}
         <span class="week-progress">${doneCount}/7 completados</span>
       </div>
@@ -473,6 +474,18 @@ function renderCalendario() {
   }
 }
 
+// Etiqueta visible con el número de semana del calendario OFICIAL (BODi/Beachbody)
+// al que corresponde el día, para que sea fácil ubicar la rutina en la app o
+// calendario original. No se muestra para Fase 0 (no es una fase oficial) ni
+// para semanas de descarga/transición (bloques propios sin numeración oficial).
+function officialWeekTag(day) {
+  if (!day.weekOfProgram) return '';
+  if (day.phaseKey === 'phase2' && day.weekOfProgram === 5) {
+    return ' <span class="week-tag" title="Semana añadida como refuerzo, no forma parte de las 4 semanas oficiales de CWCW">Week 5 · extra</span>';
+  }
+  return ` <span class="week-tag" title="Corresponde a la Week ${day.weekOfProgram} del calendario oficial">Week ${day.weekOfProgram}</span>`;
+}
+
 function openDayModal(day) {
   const modal = document.getElementById('dayModal');
   const body = document.getElementById('modalBody');
@@ -487,7 +500,7 @@ function openDayModal(day) {
     <div class="modal-meta">
       <span>⏱ ${day.workoutDuration}</span>
       <span>📍 ${day.phaseName}</span>
-      <span>📅 Semana ${day.week}</span>
+      <span>📅 Semana ${day.week}${officialWeekTag(day)}</span>
     </div>
     ${day.weekBanner ? `<div class="week-banner" style="display:block; margin-bottom:14px;">${day.weekBanner}</div>` : ''}
     <button class="check-toggle ${isDone ? 'done' : ''}" id="modalCheckBtn" style="width:100%; justify-content:center; display:flex;">
